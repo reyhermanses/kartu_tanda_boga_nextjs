@@ -53,7 +53,11 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
       }
     } else if (created?.profileImage) {
       // Fallback to created profile image if photoFile is not available
-      setAvatarUrl(created.profileImage)
+      // Use proxy for external URLs to avoid CORS issues
+      const profileUrl = created.profileImage.startsWith('http') 
+        ? `/api/proxy-image?url=${encodeURIComponent(created.profileImage)}`
+        : created.profileImage
+      setAvatarUrl(profileUrl)
     }
   }, [values.photoFile, created?.profileImage])
 
@@ -110,7 +114,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
               max-[430px]:h-[210px]
               "
               style={{
-                background: created?.cardImage ? `url(${created.cardImage.startsWith('http') && !created.cardImage.includes(window.location.hostname) ? `/api/proxy-image?url=${encodeURIComponent(created.cardImage)}` : created.cardImage})` : '#f3f4f6',
+                background: created?.cardImage ? `url(${created.cardImage.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(created.cardImage)}` : created.cardImage})` : '#f3f4f6',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat'
