@@ -510,7 +510,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
       return
     }
     
-    // Start camera immediately when PhotoUploadPage opens
+    // Start camera immediately when PhotoUploadPage opens ONLY if no photo
     const initCamera = async () => {
       try {
         await startCamera()
@@ -535,7 +535,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
     return () => {
       stopCamera()
     }
-  }, [facingMode]) // Add facingMode dependency
+  }, []) // Run only on mount
 
   // Stop camera when component unmounts (user leaves page)
   useEffect(() => {

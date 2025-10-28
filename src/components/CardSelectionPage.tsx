@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useMemo } from 'react'
 import type { FormValues } from '../types'
 
 type CardDesign = {
@@ -26,8 +26,11 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
   const [profileImageError, setProfileImageError] = useState(false)
 
 
-  // Handle profile image URL - NEVER use URL.createObjectURL, always convert to base64
+  // Handle profile image URL - ALWAYS prioritize values.photoFile over sessionStorage
   useEffect(() => {
+    console.log('=== CARD SELECTION: PHOTO FILE CHANGED ===')
+    console.log('values.photoFile:', values.photoFile)
+    
     // Function to convert File to base64
     const convertFileToBase64 = (file: File) => {
       return new Promise<string>((resolve, reject) => {
@@ -43,54 +46,46 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
       })
     }
     
-    // Priority 1: Check sessionStorage first (most reliable)
+    // PRIORITY 1: Check if we have a File object from values (MOST CURRENT)
+    if (values.photoFile && values.photoFile instanceof File) {
+      console.log('Converting File to base64...')
+      setProfileImageError(false)
+      convertFileToBase64(values.photoFile)
+        .then((base64) => {
+          console.log('✅ File converted to base64, length:', base64.length)
+          setProfileImageUrl(base64)
+          sessionStorage.setItem('profileImageData', base64)
+        })
+        .catch((error) => {
+          console.error('Error converting file to base64:', error)
+          setProfileImageError(true)
+          setProfileImageUrl(null)
+        })
+      return
+    }
+    
+    // PRIORITY 2: Check if it's already a base64 string
+    if (typeof values.photoFile === 'string' && (values.photoFile as string).startsWith('data:image/')) {
+      console.log('✅ photoFile is base64 string')
+      setProfileImageUrl(values.photoFile as string)
+      sessionStorage.setItem('profileImageData', values.photoFile as string)
+      setProfileImageError(false)
+      return
+    }
+    
+    // PRIORITY 3: Fallback to sessionStorage (for page refresh)
     const savedImageData = sessionStorage.getItem('profileImageData')
     if (savedImageData && savedImageData.startsWith('data:image/')) {
-      console.log('Loading image from sessionStorage')
+      console.log('✅ Loading image from sessionStorage (fallback)')
       setProfileImageUrl(savedImageData)
       setProfileImageError(false)
       return
     }
     
-    // Priority 2: Check if we have a File object from values
-    if (values.photoFile) {
-      // Check if it's already a base64 string
-      if (typeof values.photoFile === 'string' && (values.photoFile as string).startsWith('data:image/')) {
-        console.log('photoFile is base64 string')
-        setProfileImageUrl(values.photoFile as string)
-        sessionStorage.setItem('profileImageData', values.photoFile as string)
-        setProfileImageError(false)
-      }
-      // Check if it's a valid File object
-      else if (values.photoFile instanceof File) {
-        console.log('Converting File to base64...')
-        setProfileImageError(false)
-        convertFileToBase64(values.photoFile)
-          .then((base64) => {
-            console.log('File converted to base64, length:', base64.length)
-            setProfileImageUrl(base64)
-            sessionStorage.setItem('profileImageData', base64)
-          })
-          .catch((error) => {
-            console.error('Error converting file to base64:', error)
-            setProfileImageError(true)
-            setProfileImageUrl(null)
-          })
-      }
-      // If it's something else (object, etc), ignore and use sessionStorage
-      else {
-        console.warn('photoFile has unexpected type:', typeof values.photoFile, '- using sessionStorage fallback')
-        // Already checked sessionStorage above, so just set to null if nothing there
-        setProfileImageUrl(null)
-        setProfileImageError(false)
-      }
-    } 
-    // No photoFile at all
-    else {
-      console.log('No photoFile available')
-      setProfileImageUrl(null)
-      setProfileImageError(false)
-    }
+    // No photo available
+    console.log('⚠️ No photoFile available')
+    setProfileImageUrl(null)
+    setProfileImageError(false)
   }, [values.photoFile])
 
   // Initialize profile image from sessionStorage on mount
@@ -204,8 +199,8 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
   }
 
   const handleTouchMove = (e: React.TouchEvent) => {
+    // Only update touchEnd, don't log to reduce re-render noise
     setTouchEnd(e.targetTouches[0].clientY)
-    console.log('Touch move Y:', e.targetTouches[0].clientY)
   }
 
   const handleTouchEnd = () => {
@@ -240,6 +235,58 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
       console.log('Swipe distance too small, ignoring')
     }
   }
+
+  // Memoize visible cards to prevent re-computation on every render
+  const visibleCards = useMemo(() => {
+    console.log('=== COMPUTING VISIBLE CARDS (useMemo) ===')
+    console.log('Total cards from backend:', cards.length)
+    console.log('Current index:', currentCardIndex)
+    
+    let computed: CardDesign[] = []
+    
+    if (cards.length >= 3) {
+      // Dynamic logic for any number of cards
+      if (currentCardIndex === 0) {
+        // First card: show [empty, 0, 1]
+        computed = [
+          { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
+          cards[0] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
+          cards[1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' }
+        ]
+      } else if (currentCardIndex === cards.length - 1) {
+        // Last card: show [n-2, n-1, empty]
+        const lastIndex = cards.length - 1
+        computed = [
+          cards[lastIndex - 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
+          cards[lastIndex] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
+          { id: -2, name: 'EMPTY', imageUrl: '', tier: 'empty' }
+        ]
+      } else {
+        // Middle cards: show [n-1, n, n+1]
+        computed = [
+          cards[currentCardIndex - 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
+          cards[currentCardIndex] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
+          cards[currentCardIndex + 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' }
+        ]
+      }
+    } else if (cards.length > 0) {
+      // For 1-2 cards, duplicate to make 3
+      computed = [...cards]
+      while (computed.length < 3) {
+        computed.push(cards[0]) // Duplicate first card
+      }
+    } else {
+      // Fallback if no cards
+      computed = [
+        { id: 1, name: 'CARD 1', imageUrl: '', tier: 'basic' },
+        { id: 2, name: 'CARD 2', imageUrl: '', tier: 'basic' },
+        { id: 3, name: 'CARD 3', imageUrl: '', tier: 'basic' }
+      ]
+    }
+    
+    console.log('Visible cards computed:', computed.map(c => c.name))
+    return computed
+  }, [cards, currentCardIndex]) // Only recompute when cards or currentCardIndex changes
 
   // Convert image to base64
   async function convertImageToBase64(url: string): Promise<string> {
@@ -479,73 +526,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
         >
           {/* 3 Visible Cards Container */}
           <div className="space-y-4 flex flex-col p-2">
-            {(() => {
-              // console.log('=== VERTICAL CAROUSEL DEBUG ===')
-              // console.log('Total cards from backend:', cards.length)
-              // console.log('Current index:', currentCardIndex)
-              // console.log('Cards data:', cards.map(c => ({ name: c.name, id: c.id })))
-
-              // Show 3 cards around the current index
-              let visibleCards: CardDesign[] = []
-
-              if (cards.length >= 3) {
-                // Dynamic logic for any number of cards
-                visibleCards = []
-
-                if (currentCardIndex === 0) {
-                  // First card: show [empty, 0, 1]
-                  visibleCards = [
-                    { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-                    cards[0] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-                    cards[1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' }
-                  ]
-                } else if (currentCardIndex === cards.length - 1) {
-                  // Last card: show [n-2, n-1, empty]
-                  const lastIndex = cards.length - 1
-                  visibleCards = [
-                    cards[lastIndex - 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-                    cards[lastIndex] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-                    { id: -2, name: 'EMPTY', imageUrl: '', tier: 'empty' }
-                  ]
-                } else {
-                  // Middle cards: show [n-1, n, n+1]
-                  visibleCards = [
-                    cards[currentCardIndex - 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-                    cards[currentCardIndex] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-                    cards[currentCardIndex + 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' }
-                  ]
-                }
-
-                // console.log(`Showing cards for index ${currentCardIndex}`)
-                // console.log('Visible cards:', visibleCards.map(c => c?.name || 'undefined'))
-                // console.log('Current card index:', currentCardIndex)
-
-                // Dynamic sliding window logic:
-                // Index 0: show [empty,0,1] → Card 0 (index 1) expanded
-                // Index 1: show [0,1,2] → Card 1 (index 1) expanded  
-                // Index 2: show [1,2,3] → Card 2 (index 1) expanded
-                // Index n: show [n-1,n,n+1] → Card n (index 1) expanded
-                // Index last: show [n-2,n-1,empty] → Card last (index 1) expanded
-              } else if (cards.length > 0) {
-                // For 1-2 cards, duplicate to make 3
-                visibleCards = [...cards]
-                while (visibleCards.length < 3) {
-                  visibleCards.push(cards[0]) // Duplicate first card
-                }
-                // console.log(`Duplicated cards to make 3: ${visibleCards.length}`)
-              } else {
-                // Fallback if no cards
-                visibleCards = [
-                  { id: 1, name: 'CARD 1', imageUrl: '', tier: 'basic' },
-                  { id: 2, name: 'CARD 2', imageUrl: '', tier: 'basic' },
-                  { id: 3, name: 'CARD 3', imageUrl: '', tier: 'basic' }
-                ]
-                // console.log('Using fallback cards:', visibleCards.length)
-              }
-
-              // console.log('Final visible cards count:', visibleCards.length)
-
-              return visibleCards.map((card, visibleIndex) => {
+            {visibleCards.map((card, visibleIndex) => {
                 // Calculate which card is selected - ALWAYS select middle card (index 1)
                 let isSelected = false
                 if (cards.length >= 3) {
@@ -563,8 +544,8 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
                       <div
                         className={`rounded-2xl relative overflow-hidden shadow-2xl transition-all duration-300 
                           ${isSelected
-                            ? 'w-full h-[220px] max-[375px]:h-[220px] max-[393px]:h-[220px] max-[414px]:h-[210px] max-[390px]:h-[210px] max-[430px]:h-[210px]'
-                            : 'w-full h-24 max-[375px]:h-24 max-[414px]:h-34 max-[390px]:h-33 max-[393px]:h-36 max-[430px]:h-48 scale-75 blur-[4px]'}`}
+                            ? 'w-full h-[220px]'
+                            : 'w-full h-42 scale-75 blur-[4px]'}`}
                         style={{
                           background: card.tier === 'empty' ? 'transparent' : (card.imageUrl ? `url(${card.imageUrl})` : '#f3f4f6'),
                           backgroundSize: 'cover',
@@ -597,10 +578,10 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
 
                         {/* Profile Picture */}
                         {card.tier !== 'empty' && (
-                          <div className={`absolute right-8 top-[60px] max-[375px]:right-7 max-[390px]:right-4 -translate-y-1/2 
-                          ${isSelected ? 'top-[60px]' : 'top-[60px] max-[375px]:top-[40px] max-[390px]:top-[40px] max-[414px]:top-[50px] max-[430px]:top-[60px]'}`}>
+                          <div className={`absolute right-9 -translate-y-1/2 
+                          ${isSelected ? 'top-[60px]' : 'top-[60px]'}`}>
                             <div className="
-                            w-24 h-24 
+                            w-20 h-20 
                             rounded-full 
                             overflow-hidden 
                             border-4 
@@ -668,8 +649,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
                     <div key={`empty-${visibleIndex}`} className='flex text-white text-center h-32 justify-center items-center'></div>
                     // <div className='flex text-white text-center h-32 justify-center items-center'>Tidak ada kartu tersedia</div>
                 )
-              })
-            })()}
+            })}
           </div>
 
           {/* Card Title Display - Show title of the main/center card */}
@@ -692,11 +672,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
               }}
               className="absolute top-16 sm:top-16 left-1/2 transform -translate-x-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all"
             >
-              <svg className="w-6 h-6 
-              max-[375px]:w-16 max-[375px]:h-16
-              max-[390px]:w-8 max-[390px]:h-8
-              max-[414px]:w-10 max-[414px]:h-10
-              max-[430px]:w-12 max-[430px]:h-12
+              <svg className="w-16 h-16
               text-white font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 15l7-7 7 7" />
               </svg>
@@ -713,11 +689,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
               }}
               className="absolute bottom-16 sm:bottom-16 left-1/2 transform -translate-x-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all"
             >
-              <svg className="w-6 h-6 
-              max-[375px]:w-16 max-[375px]:h-16
-              max-[390px]:w-8 max-[390px]:h-8
-              max-[414px]:w-10 max-[414px]:h-10
-              max-[430px]:w-12 max-[430px]:h-12
+              <svg className="w-16 h-16 
               text-white font-bold" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                 <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M19 9l-7 7-7-7" />
               </svg>
