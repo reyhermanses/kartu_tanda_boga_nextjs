@@ -54,30 +54,23 @@ export function CardDownloader({ cardData, selectedCardUrl, onDownload }: Props)
         z-index: 9999;
       `
 
-      // Add background image as img element (better for html2canvas)
-      if (savedCardBlob) {
-        const backgroundImg = document.createElement('img')
-        backgroundImg.src = savedCardBlob
-        backgroundImg.crossOrigin = 'anonymous'
-        backgroundImg.style.cssText = `
-          position: absolute;
-          top: 0;
-          left: 0;
-          width: 100%;
-          height: 100%;
-          object-fit: cover;
-          border-radius: 16px;
-        `
-        tempCard.appendChild(backgroundImg)
-        console.log('Background image added as img element (from blob)')
+      // Add background image - Priority: savedCardBlob > savedCardUrl > cardData.cardImage
+      let backgroundImageUrl = null
+      
+      if (savedCardBlob && savedCardBlob.startsWith('data:image/')) {
+        backgroundImageUrl = savedCardBlob
+        console.log('Using card background from sessionStorage blob')
       } else if (savedCardUrl) {
+        backgroundImageUrl = savedCardUrl
+        console.log('Using card background from sessionStorage URL:', savedCardUrl)
+      } else if (cardData.cardImage) {
+        backgroundImageUrl = cardData.cardImage
+        console.log('Using card background from cardData.cardImage:', cardData.cardImage)
+      }
+      
+      if (backgroundImageUrl) {
         const backgroundImg = document.createElement('img')
-        // Use proxy for external URLs to avoid CORS issues
-        let imageUrl = savedCardUrl
-        if (imageUrl.startsWith('http') && !imageUrl.includes(window.location.hostname)) {
-          imageUrl = `/api/proxy-image?url=${encodeURIComponent(imageUrl)}`
-        }
-        backgroundImg.src = imageUrl
+        backgroundImg.src = backgroundImageUrl
         backgroundImg.crossOrigin = 'anonymous'
         backgroundImg.style.cssText = `
           position: absolute;
@@ -88,10 +81,19 @@ export function CardDownloader({ cardData, selectedCardUrl, onDownload }: Props)
           object-fit: cover;
           border-radius: 16px;
         `
+        
+        // Add onload and onerror handlers
+        backgroundImg.onload = () => {
+          console.log('✅ Background image loaded successfully')
+        }
+        backgroundImg.onerror = () => {
+          console.error('❌ Failed to load background image:', backgroundImageUrl)
+        }
+        
         tempCard.appendChild(backgroundImg)
-        console.log('Background image added as img element (from URL with proxy)')
+        console.log('Background image element added to card')
       } else {
-        console.log('No saved card blob or URL, using gradient background')
+        console.warn('⚠️ No card background image available, using gradient fallback')
       }
 
       console.log('Saved card blob length:', savedCardBlob ? savedCardBlob.length : 'null')
@@ -100,8 +102,8 @@ export function CardDownloader({ cardData, selectedCardUrl, onDownload }: Props)
       const profileContainer = document.createElement('div')
       profileContainer.style.cssText = `
         position: absolute;
-        right: 4px;
-        top: 100px;
+        right: 22px;
+        top: 90px;
         transform: translateY(-50%);
       `
 
@@ -116,25 +118,36 @@ export function CardDownloader({ cardData, selectedCardUrl, onDownload }: Props)
         background: #dbeafe;
       `
 
-      if (savedProfileBlob) {
+      // Get profile image - Priority: savedProfileBlob > cardData.profileImage
+      let profileImageUrl = savedProfileBlob || cardData.profileImage
+      
+      if (profileImageUrl) {
         const img = document.createElement('img')
-        img.src = savedProfileBlob
+        img.src = profileImageUrl
         img.crossOrigin = 'anonymous'
         img.style.cssText = `
           width: 100%;
           height: 100%;
           object-fit: cover;
         `
+        img.onload = () => {
+          console.log('✅ Profile image loaded successfully')
+        }
+        img.onerror = () => {
+          console.error('❌ Failed to load profile image:', profileImageUrl)
+        }
         profileImg.appendChild(img)
+        console.log('Using profile image:', profileImageUrl ? profileImageUrl.substring(0, 50) + '...' : 'null')
       } else {
         // Default avatar with icon
         profileImg.innerHTML = `
           <div style="width: 100%; height: 100%; background: #dbeafe; display: flex; align-items: center; justify-content: center;">
-            <svg style="width: 48px; height: 48px; color: #2563eb;" fill="currentColor" viewBox="0 0 20 20">
+            <svg style="width: 48px; height: 48px; color: black;" fill="currentColor" viewBox="0 0 20 20">
               <path fill-rule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clip-rule="evenodd" />
             </svg>
           </div>
         `
+        console.log('⚠️ No profile image available, using default avatar')
       }
 
       profileContainer.appendChild(profileImg)
@@ -145,7 +158,7 @@ export function CardDownloader({ cardData, selectedCardUrl, onDownload }: Props)
       infoContainer.style.cssText = `
         position: absolute;
         bottom: 20px;
-        right: 0px;
+        right: 22px;
         text-align: center;
         transform: scale(0.90);
       `
@@ -216,22 +229,24 @@ export function CardDownloader({ cardData, selectedCardUrl, onDownload }: Props)
       phoneEl.textContent = formattedPhone
       console.log('Phone text:', cardData.phone, 'Formatted:', formattedPhone)
       phoneEl.style.cssText = `
-        color: #1e40af;
+        color: white;
         font-weight: 800;
         font-size: 15px;
         font-family: Roboto;
         margin-bottom: 2px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8);
       `
 
       const emailEl = document.createElement('div')
       emailEl.textContent = cardData.email || 'No Email'
       console.log('Email text:', cardData.email)
       emailEl.style.cssText = `
-        color: #1e40af;
+        color: white;
         font-weight: 800;
         font-size: 15px;
         font-family: Roboto;
         margin-bottom: 2px;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8);
       `
 
       // Add serial number
@@ -239,10 +254,11 @@ export function CardDownloader({ cardData, selectedCardUrl, onDownload }: Props)
       serialEl.textContent = cardData.serial || '6202100027100645'
       console.log('Serial text:', cardData.serial)
       serialEl.style.cssText = `
-        color: #1e40af;
+        color: white;
         font-weight: 800;
         font-size: 14px;
         font-family: Roboto;
+        text-shadow: 1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8);
       `
 
       contactContainer.appendChild(phoneEl)

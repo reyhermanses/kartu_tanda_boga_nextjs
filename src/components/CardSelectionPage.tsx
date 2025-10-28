@@ -22,7 +22,84 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
   const [touchStart, setTouchStart] = useState<number | null>(null)
   const [touchEnd, setTouchEnd] = useState<number | null>(null)
   const [isProcessing, setIsProcessing] = useState(false)
+  const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
+  const [profileImageError, setProfileImageError] = useState(false)
 
+
+  // Handle profile image URL - NEVER use URL.createObjectURL, always convert to base64
+  useEffect(() => {
+    // Function to convert File to base64
+    const convertFileToBase64 = (file: File) => {
+      return new Promise<string>((resolve, reject) => {
+        const reader = new FileReader()
+        reader.onload = () => {
+          const result = reader.result as string
+          resolve(result)
+        }
+        reader.onerror = () => {
+          reject(new Error('Failed to read file'))
+        }
+        reader.readAsDataURL(file)
+      })
+    }
+    
+    // Priority 1: Check sessionStorage first (most reliable)
+    const savedImageData = sessionStorage.getItem('profileImageData')
+    if (savedImageData && savedImageData.startsWith('data:image/')) {
+      console.log('Loading image from sessionStorage')
+      setProfileImageUrl(savedImageData)
+      setProfileImageError(false)
+      return
+    }
+    
+    // Priority 2: Check if we have a File object from values
+    if (values.photoFile) {
+      // Check if it's already a base64 string
+      if (typeof values.photoFile === 'string' && (values.photoFile as string).startsWith('data:image/')) {
+        console.log('photoFile is base64 string')
+        setProfileImageUrl(values.photoFile as string)
+        sessionStorage.setItem('profileImageData', values.photoFile as string)
+        setProfileImageError(false)
+      }
+      // Check if it's a valid File object
+      else if (values.photoFile instanceof File) {
+        console.log('Converting File to base64...')
+        setProfileImageError(false)
+        convertFileToBase64(values.photoFile)
+          .then((base64) => {
+            console.log('File converted to base64, length:', base64.length)
+            setProfileImageUrl(base64)
+            sessionStorage.setItem('profileImageData', base64)
+          })
+          .catch((error) => {
+            console.error('Error converting file to base64:', error)
+            setProfileImageError(true)
+            setProfileImageUrl(null)
+          })
+      }
+      // If it's something else (object, etc), ignore and use sessionStorage
+      else {
+        console.warn('photoFile has unexpected type:', typeof values.photoFile, '- using sessionStorage fallback')
+        // Already checked sessionStorage above, so just set to null if nothing there
+        setProfileImageUrl(null)
+        setProfileImageError(false)
+      }
+    } 
+    // No photoFile at all
+    else {
+      console.log('No photoFile available')
+      setProfileImageUrl(null)
+      setProfileImageError(false)
+    }
+  }, [values.photoFile])
+
+  // Initialize profile image from sessionStorage on mount
+  useEffect(() => {
+    const savedImageData = sessionStorage.getItem('profileImageData')
+    if (savedImageData && savedImageData.startsWith('data:image/')) {
+      setProfileImageUrl(savedImageData)
+    }
+  }, [])
 
   // Load cards from backend
   useEffect(() => {
@@ -254,14 +331,26 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
             }
           }
           
-          // Convert profile image to blob and store
-          if (values.photoFile) {
+          // Profile image is already saved in profileImageData by useEffect
+          // Just make sure it's also in selectedProfileBlob for CardDownloader
+          if (profileImageUrl) {
             try {
-          console.log('Converting profile image to base64')
-          const profileBlob = await convertImageToBase64(URL.createObjectURL(values.photoFile))
-              if (profileBlob) {
-                sessionStorage.setItem('selectedProfileBlob', profileBlob)
-                console.log('Profile blob saved to sessionStorage, length:', profileBlob.length)
+              console.log('Saving profile image to sessionStorage for download')
+              
+              // If it's already a base64 string, use it directly
+              if (profileImageUrl.startsWith('data:image/')) {
+                sessionStorage.setItem('selectedProfileBlob', profileImageUrl)
+                // Also ensure it's in profileImageData
+                sessionStorage.setItem('profileImageData', profileImageUrl)
+                console.log('Profile base64 data saved to sessionStorage, length:', profileImageUrl.length)
+              } else {
+                // If it's a blob URL, convert it
+                const profileBlob = await convertImageToBase64(profileImageUrl)
+                if (profileBlob) {
+                  sessionStorage.setItem('selectedProfileBlob', profileBlob)
+                  sessionStorage.setItem('profileImageData', profileBlob)
+                  console.log('Profile blob saved to sessionStorage, length:', profileBlob.length)
+                }
               }
             } catch (error) {
               console.log('Failed to convert profile image to blob:', error)
@@ -287,6 +376,17 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
     // console.log('New index:', currentCardIndex)
     // console.log('Cards length:', cards.length)
   }, [currentCardIndex, cards.length])
+
+  // Cleanup sessionStorage on unmount
+  useEffect(() => {
+    return () => {
+      // Don't clear sessionStorage here as we need it for other pages
+      // Just revoke any blob URLs
+      if (profileImageUrl && profileImageUrl.startsWith('blob:')) {
+        URL.revokeObjectURL(profileImageUrl)
+      }
+    }
+  }, [profileImageUrl])
 
   if (loading) {
     return (
@@ -512,17 +612,27 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
                             border-white 
                             shadow-lg 
                             bg-blue-200">
-                              {values.photoFile ? (
+                              {profileImageUrl && !profileImageError ? (
                                 <img
-                                  src={URL.createObjectURL(values.photoFile)}
+                                  src={profileImageUrl}
                                   alt="Profile"
                                   className="w-full h-full object-cover"
+                                  onError={() => {
+                                    console.error('Image failed to load')
+                                    setProfileImageError(true)
+                                  }}
                                 />
                               ) : (
                                 <div className="w-full h-full bg-blue-200 flex items-center justify-center">
-                                  <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
-                                    <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
-                                  </svg>
+                                  {profileImageError ? (
+                                    <svg className="w-8 h-8 text-red-500" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M18 10a8 8 0 11-16 0 8 8 0 0116 0zm-7 4a1 1 0 11-2 0 1 1 0 012 0zm-1-9a1 1 0 00-1 1v4a1 1 0 102 0V6a1 1 0 00-1-1z" clipRule="evenodd" />
+                                    </svg>
+                                  ) : (
+                                    <svg className="w-12 h-12 text-blue-600" fill="currentColor" viewBox="0 0 20 20">
+                                      <path fillRule="evenodd" d="M10 9a3 3 0 100-6 3 3 0 000 6zm-7 9a7 7 0 1114 0H3z" clipRule="evenodd" />
+                                    </svg>
+                                  )}
                                 </div>
                               )}
                             </div>

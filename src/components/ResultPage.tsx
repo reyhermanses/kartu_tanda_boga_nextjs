@@ -36,30 +36,72 @@ type Props = {
 
 export function ResultPage({ created, values, selectedCardUrl }: Props) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
+  const [cardImageUrl, setCardImageUrl] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
 
 
-  // Create avatar URL from photo file or fallback to created profile image
+  // Create avatar URL - PRIORITY: sessionStorage > photoFile > API response
   useEffect(() => {
+    console.log('=== LOADING AVATAR IMAGE ===')
+    
+    // PRIORITY 1: Check sessionStorage first (most reliable on refresh)
+    const savedProfileImage = sessionStorage.getItem('profileImageData')
+    if (savedProfileImage && savedProfileImage.startsWith('data:image/')) {
+      console.log('✅ Using avatar from sessionStorage')
+      setAvatarUrl(savedProfileImage)
+      return
+    }
+    
+    // PRIORITY 2: Check if we have photoFile from props
     if (values.photoFile) {
-      // Check if photoFile is a File object or base64 string
+      // Check if photoFile is a File object
       if (values.photoFile instanceof File) {
-        const url = URL.createObjectURL(values.photoFile)
-        setAvatarUrl(url)
-        return () => URL.revokeObjectURL(url)
-      } else if (typeof values.photoFile === 'string') {
-        // It's a base64 string from sessionStorage
-        setAvatarUrl(values.photoFile)
+        console.log('Converting File to base64 for avatar...')
+        const reader = new FileReader()
+        reader.onload = () => {
+          const base64 = reader.result as string
+          setAvatarUrl(base64)
+          // Also save to sessionStorage for future refreshes
+          sessionStorage.setItem('profileImageData', base64)
+        }
+        reader.onerror = () => {
+          console.error('Error reading file')
+          setAvatarUrl(null)
+        }
+        reader.readAsDataURL(values.photoFile)
+        return
+      } 
+      // Check if it's already a base64 string
+      else if (typeof values.photoFile === 'string' && (values.photoFile as string).startsWith('data:image/')) {
+        console.log('✅ Using avatar from photoFile (base64 string)')
+        setAvatarUrl(values.photoFile as string)
+        sessionStorage.setItem('profileImageData', values.photoFile as string)
+        return
       }
-    } else if (created?.profileImage) {
-      // Fallback to created profile image if photoFile is not available
-      // Use proxy for external URLs to avoid CORS issues
+    }
+    
+    // PRIORITY 3: Fallback to created.profileImage from API
+    if (created?.profileImage) {
+      console.log('✅ Using avatar from API response')
       const profileUrl = created.profileImage.startsWith('http') 
         ? `/api/proxy-image?url=${encodeURIComponent(created.profileImage)}`
         : created.profileImage
       setAvatarUrl(profileUrl)
+      return
     }
+    
+    // No avatar available
+    console.log('⚠️ No avatar available')
+    setAvatarUrl(null)
   }, [values.photoFile, created?.profileImage])
+
+  // Handle card background image - SIMPLE: Just use created.cardImage
+  useEffect(() => {
+    if (created?.cardImage) {
+      console.log('Card image from API:', created.cardImage)
+      setCardImageUrl(created.cardImage)
+    }
+  }, [created?.cardImage])
 
   function handleClaimClick() {
     // Use smart deeplink that automatically handles device detection and store redirection
@@ -114,7 +156,8 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
               max-[430px]:h-[210px]
               "
               style={{
-                background: created?.cardImage ? `url(${created.cardImage.startsWith('http') ? `/api/proxy-image?url=${encodeURIComponent(created.cardImage)}` : created.cardImage})` : '#f3f4f6',
+                backgroundImage: cardImageUrl ? `url(${cardImageUrl})` : 'none',
+                backgroundColor: cardImageUrl ? 'transparent' : '#f3f4f6',
                 backgroundSize: 'cover',
                 backgroundPosition: 'center',
                 backgroundRepeat: 'no-repeat'
@@ -141,11 +184,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
 
               {/* Profile Picture */}
               <div className="absolute  
-              max-[375px]:right-1 
-              max-[390px]:right-1 
-              max-[414px]:right-1 
-              max-[430px]:right-1
-              right-1 
+              right-5
               top-[60px]
               -translate-y-1/2
               ">
@@ -170,7 +209,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
               </div>
 
               {/* User Info Card - Right Position with Centered Content */}
-              <div className="absolute bottom-[4px] right-0 text-center scale-90">
+              <div className="absolute bottom-[4px] right-4 text-center scale-80">
                 <div className="flex items-center justify-end mb-2">
                   <div className="bg-white rounded-full px-2 py-1 sm:px-3 sm:py-1 flex items-center shadow-xl">
                     <span className="text-black font-extrabold text-xs sm:text-sm mr-1 sm:mr-2">{created?.name || values.name}</span>
@@ -185,13 +224,13 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
                   {/* <div className="bg-blue-400 rounded-full px-2 py-1 sm:px-3 sm:py-1 flex items-center shadow-lg w-fit">
                     <span className="text-white font-extrabold text-[10px] sm:text-xs" style={{ fontFamily: 'Roboto' }}>{values.birthday ? formatBirthday(values.birthday) : '13 SEP 1989'}</span>
                   </div> */}
-                  <div className="text-blue-800 font-extrabold text-[15px] sm:text-xs" style={{ fontFamily: 'Roboto' }}>
+                  <div className="text-white font-extrabold text-[15px] sm:text-xs" style={{ fontFamily: 'Roboto', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
                     {values.phone ? values.phone.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3') : '0877-9832-0931'}
                   </div>
-                  <div className="text-blue-800 font-extrabold text-[15px]">
+                  <div className="text-white font-extrabold text-[15px]" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
                     {values.email || 'valeriebahagia@gmail.com'}
                   </div>
-                  <div className="text-blue-800 font-extrabold text-[14px] mt-1">
+                  <div className="text-white font-extrabold text-[14px] mt-1" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
                     {created?.serial || '6202100027100645'}
                   </div>
                 </div>
@@ -227,8 +266,9 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
                 phone: values.phone,
                 email: values.email,
                 birthday: values.birthday,
-                profileImage: avatarUrl || created?.profileImage,
-                cardImage: created?.cardImage
+                profileImage: avatarUrl || null || undefined,
+                cardImage: cardImageUrl || null || undefined,
+                serial: created?.serial || '6202100027100645'
               }}
               selectedCardUrl={selectedCardUrl}
               onDownload={() => console.log('Download completed')}
