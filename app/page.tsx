@@ -48,26 +48,26 @@ export default function Home() {
   // Load session data on app mount - only once
   useEffect(() => {
     let isLoaded = false
-    
+
     const loadSession = () => {
       if (isLoaded) return
       isLoaded = true
-      
+
       try {
         const saved = sessionStorage.getItem('ktb_form_session')
         console.log('Raw session data from storage:', saved)
-        
+
         if (saved) {
           const sessionData = JSON.parse(saved)
           console.log('Parsed session data:', sessionData)
-          
+
           if (sessionData.currentPage) {
             console.log('Setting currentPage to:', sessionData.currentPage)
             setCurrentPage(sessionData.currentPage)
           }
           if (sessionData.values) {
             console.log('Setting values:', sessionData.values)
-            
+
             // Convert base64 photoFile back to File if it exists
             if (sessionData.values.photoFile && typeof sessionData.values.photoFile === 'string') {
               const arr = sessionData.values.photoFile.split(',')
@@ -81,7 +81,7 @@ export default function Home() {
               const file = new File([u8arr], 'photo.jpg', { type: mime })
               sessionData.values.photoFile = file
             }
-            
+
             setValues(sessionData.values)
           }
           if (sessionData.selectedCardUrl) {
@@ -99,7 +99,7 @@ export default function Home() {
         console.error('Failed to load session:', error)
       }
     }
-    
+
     // Load immediately
     loadSession()
   }, [])
@@ -118,7 +118,7 @@ export default function Home() {
         console.error('Failed to save currentPage:', error)
       }
     }
-    
+
     const timer = setTimeout(saveCurrentPage, 100)
     return () => clearTimeout(timer)
   }, [currentPage])
@@ -129,7 +129,7 @@ export default function Home() {
       try {
         const saved = sessionStorage.getItem('ktb_form_session')
         const sessionData = saved ? JSON.parse(saved) : {}
-        
+
         // Convert photoFile to base64 if it exists
         if (values.photoFile && values.photoFile instanceof File) {
           const reader = new FileReader()
@@ -152,7 +152,7 @@ export default function Home() {
         console.error('Failed to save values:', error)
       }
     }
-    
+
     const timer = setTimeout(saveValues, 100)
     return () => clearTimeout(timer)
   }, [values])
@@ -170,7 +170,7 @@ export default function Home() {
         console.error('Failed to save selectedCardUrl:', error)
       }
     }
-    
+
     const timer = setTimeout(saveSelectedCardUrl, 100)
     return () => clearTimeout(timer)
   }, [selectedCardUrl])
@@ -188,7 +188,7 @@ export default function Home() {
         console.error('Failed to save created:', error)
       }
     }
-    
+
     const timer = setTimeout(saveCreated, 100)
     return () => clearTimeout(timer)
   }, [created])
@@ -216,12 +216,12 @@ export default function Home() {
       const birthDate = new Date(values.birthday)
       let age = today.getFullYear() - birthDate.getFullYear()
       const monthDiff = today.getMonth() - birthDate.getMonth()
-      
+
       // Adjust age if birthday hasn't occurred this year yet
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--
       }
-      
+
       if (age < 13) {
         newErrors.birthday = 'Umur minimal 13 tahun'
       }
@@ -230,7 +230,9 @@ export default function Home() {
     if (!values.phone) {
       newErrors.phone = 'Nomor telepon harus diisi'
     } else if (!values.phone.startsWith('0')) {
-      newErrors.phone = 'Nomor telepon harus dimulai dengan 0'
+      newErrors.phone = 'Perbaiki format nomor HP, isi hanya dengan angka dimulai dengan angka 0'
+    } else if (values.phone.length < 10 || values.phone.length > 13) {
+      newErrors.phone = 'Nomor telepon harus 10-13 digit'
     }
 
     if (!values.email) {
@@ -260,12 +262,12 @@ export default function Home() {
       const birthDate = new Date(values.birthday)
       let age = today.getFullYear() - birthDate.getFullYear()
       const monthDiff = today.getMonth() - birthDate.getMonth()
-      
+
       // Adjust age if birthday hasn't occurred this year yet
       if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
         age--
       }
-      
+
       if (age < 13) {
         newErrors.birthday = 'Umur minimal 13 tahun'
       }
@@ -274,7 +276,9 @@ export default function Home() {
     if (!values.phone) {
       newErrors.phone = 'Nomor telepon harus diisi'
     } else if (!values.phone.startsWith('0')) {
-      newErrors.phone = 'Nomor telepon harus dimulai dengan 0'
+      newErrors.phone = 'Perbaiki format nomor HP, isi hanya dengan angka dimulai dengan angka 0. Contoh: 081234567890'
+    } else if (values.phone.length < 10 || values.phone.length > 13) {
+      newErrors.phone = 'Nomor telepon harus 10-13 digit'
     }
 
     if (!values.email) {
@@ -302,7 +306,7 @@ export default function Home() {
     setIsSubmitting(true)
     try {
       console.log('Checking email/phone duplicate...')
-      
+
       const checkResponse = await fetch('https://alpha-api.mybogaloyalty.id/membership-card/check-email', {
         method: 'POST',
         mode: 'cors',
@@ -324,7 +328,7 @@ export default function Home() {
       // If response is true, means email/phone already exists
       if (isDuplicate === false) {
         newErrors.email = 'Email sudah terdaftar!'
-        
+
         setErrors(newErrors)
         const errorMessages = Object.values(newErrors).filter(Boolean)
         setErrorList(errorMessages)
@@ -368,7 +372,7 @@ export default function Home() {
   const handleCardSubmit = async (selectedCard: any) => {
     console.log('Card selected:', selectedCard)
     setSelectedCardUrl(selectedCard.imageUrl)
-    
+
     // API call here like in kartu_tanda_boga_new
     setIsSubmitting(true)
     try {
@@ -406,9 +410,9 @@ export default function Home() {
         // Handle duplicate email/phone errors
         const errorMsg = result.message || 'Failed to create membership'
         const errorMsgLower = errorMsg.toLowerCase()
-        
+
         const newErrors: FormErrors = {}
-        
+
         // Parse error message to set specific field errors
         if (errorMsgLower.includes('phone') || errorMsgLower.includes('telepon') || errorMsgLower.includes('nomor')) {
           newErrors.phone = 'Nomor telepon sudah terdaftar'
@@ -416,7 +420,7 @@ export default function Home() {
         if (errorMsgLower.includes('email')) {
           newErrors.email = 'Email sudah terdaftar'
         }
-        
+
         // Set errors and navigate back to form
         if (Object.keys(newErrors).length > 0) {
           setErrors(newErrors)
@@ -546,9 +550,9 @@ export default function Home() {
   }
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100">
+    <div className="min-h-screen bg-gradient-to-br from-blue-50 to-indigo-100" style={{ minHeight: '100vh', height: '100%' }}>
       {/* Fixed width container for mobile-first design */}
-      <div className="mx-auto max-w-[390px] min-h-screen bg-white shadow-lg">
+      <div className="mx-auto max-w-[390px] min-h-screen bg-white shadow-lg" style={{ minHeight: '100vh' }}>
         {renderCurrentPage()}
       </div>
 

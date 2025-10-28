@@ -67,7 +67,7 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                 type="date"
                 value={values.birthday}
                 onChange={(e) => onChange({ birthday: e.target.value })}
-                className={`w-full rounded-[20px] border-2 bg-transparent px-3 py-3 sm:px-4 sm:py-5 text-white placeholder-white/70 outline-none focus:border-white focus:ring-1 focus:ring-white/50 focus:bg-transparent hover:bg-transparent transition-all text-base ${errors.birthday ? 'border-orange-500' : 'border-red-400'
+                className={`date-input-custom w-full rounded-[20px] border-2 bg-transparent px-3 py-3 sm:px-4 sm:py-5 text-white placeholder-white/70 outline-none focus:border-white focus:ring-1 focus:ring-white/50 focus:bg-transparent hover:bg-transparent transition-all text-base ${errors.birthday ? 'border-orange-500' : 'border-red-400'
                   }`}
                 style={{
                   colorScheme: 'dark',
@@ -81,24 +81,15 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                 }}
                 id="birthday-input"
               />
-              {/* Custom Calendar Icon - Clickable - Hidden on iOS to prevent double icon */}
-              <button
-                type="button"
-                onClick={() => {
-                  const input = document.getElementById('birthday-input') as HTMLInputElement;
-                  if (input) {
-                    input.showPicker();
-                  }
-                }}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-auto cursor-pointer hidden sm:block"
-                style={{
-                  pointerEvents: 'none'
-                }}
+              {/* Custom Calendar Icon - Visible on all devices */}
+              <div
+                className="absolute right-4 top-1/2 transform -translate-y-1/2"
+                style={{ pointerEvents: 'none' }}
               >
-                <svg className="w-5 h-5 text-white hover:text-red-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
-              </button>
+              </div>
             </div>
             {errors.birthday && (
               <span className="mt-1 block text-xs text-white">
