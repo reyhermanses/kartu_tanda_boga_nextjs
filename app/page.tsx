@@ -322,7 +322,7 @@ export default function Home() {
       console.log('Check result (isDuplicate):', isDuplicate)
 
       // If response is true, means email/phone already exists
-      if (isDuplicate === true) {
+      if (isDuplicate === false) {
         newErrors.email = 'Email sudah terdaftar!'
         
         setErrors(newErrors)
