@@ -529,8 +529,11 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
             {/* <button className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center">
               <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white"></div>
             </button> */}
+            <div></div>
+            <div></div>
+            <div></div>
 
-            <button
+            {/* <button
               onClick={toggleFlashlight}
               className={`
             w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center 
@@ -540,7 +543,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
               <svg className={`w-6 h-6 sm:w-8 sm:h-8 ${flashlightOn ? 'text-black' : 'text-white'}`} fill="currentColor" viewBox="0 0 20 20">
                 <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
               </svg>
-            </button>
+            </button> */}
 
             {/* Shutter */}
             <button

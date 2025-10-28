@@ -15,7 +15,7 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
   return (
     <div className="form-page p-4 sm:p-6 relative overflow-hidden min-h-screen">
       {/* Background Image - Full Viewport Height */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: 'url(/bg.png)',
@@ -31,9 +31,9 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
       <div className="relative z-20">
         {/* Header Image */}
         <div className="flex justify-center mb-6 sm:mb-8">
-          <img 
-            src="/header.png" 
-            alt="BOGA APP Header" 
+          <img
+            src="/header.png"
+            alt="BOGA APP Header"
             className="w-[290px] h-auto rounded-lg shadow-lg"
           />
         </div>
@@ -71,12 +71,15 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                   colorScheme: 'dark',
                   color: 'white',
                   paddingRight: '50px',
-                  paddingBottom: '10px',
-                  marginBottom: '4px'
+                  minHeight: '56px',
+                  height: '56px',
+                  WebkitAppearance: 'none',
+                  MozAppearance: 'none',
+                  appearance: 'none'
                 }}
                 id="birthday-input"
               />
-              {/* Custom Calendar Icon - Clickable */}
+              {/* Custom Calendar Icon - Clickable - Hidden on iOS to prevent double icon */}
               <button
                 type="button"
                 onClick={() => {
@@ -85,19 +88,22 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                     input.showPicker();
                   }
                 }}
-                className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-auto cursor-pointer"
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 pointer-events-auto cursor-pointer hidden sm:block"
+                style={{
+                  pointerEvents: 'none'
+                }}
               >
                 <svg className="w-5 h-5 text-white hover:text-red-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </button>
             </div>
-            <div className='flex text-[12px] bg-yellow-300 italic border border-orange-400 text-gray-600 rounded-[5px] p-3 justify-center'>Isi sesuai kartu identitas ya, banyak kejutan pas ulang tahun kamu!</div>
             {errors.birthday && (
               <span className="mt-1 block text-xs text-white">
                 {errors.birthday}
               </span>
             )}
+            <div className='flex text-[12px] bg-yellow-300 italic border border-orange-400 text-gray-600 rounded-[5px] p-3 justify-center mt-2'>Isi sesuai kartu identitas ya, banyak kejutan pas ulang tahun kamu!</div>
           </label>
           <InputField
             label="Email"

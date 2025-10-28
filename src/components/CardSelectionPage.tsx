@@ -563,7 +563,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
                       <div
                         className={`rounded-2xl relative overflow-hidden shadow-2xl transition-all duration-300 
                           ${isSelected
-                            ? 'w-full h-[200px] max-[375px]:h-[220px] max-[393px]:h-[220px] max-[414px]:h-[230px] max-[390px]:h-[230px] max-[430px]:h-[230px]'
+                            ? 'w-full h-[220px] max-[375px]:h-[220px] max-[393px]:h-[220px] max-[414px]:h-[210px] max-[390px]:h-[210px] max-[430px]:h-[210px]'
                             : 'w-full h-24 max-[375px]:h-24 max-[414px]:h-34 max-[390px]:h-33 max-[393px]:h-36 max-[430px]:h-48 scale-75 blur-[4px]'}`}
                         style={{
                           background: card.tier === 'empty' ? 'transparent' : (card.imageUrl ? `url(${card.imageUrl})` : '#f3f4f6'),
@@ -597,15 +597,10 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
 
                         {/* Profile Picture */}
                         {card.tier !== 'empty' && (
-                          <div className={`absolute right-4 top-[60px] max-[375px]:right-7 max-[390px]:right-4 -translate-y-1/2 
-                          ${isSelected ? 'top-[100px] max-[375px]:top-[90px] max-[390px]:top-[90px] max-[414px]:top-[90px] max-[430px]:top-[90px]' : 'top-[60px] max-[375px]:top-[40px] max-[390px]:top-[40px] max-[414px]:top-[50px] max-[430px]:top-[60px]'}`}>
+                          <div className={`absolute right-8 top-[60px] max-[375px]:right-7 max-[390px]:right-4 -translate-y-1/2 
+                          ${isSelected ? 'top-[70px]' : 'top-[60px] max-[375px]:top-[40px] max-[390px]:top-[40px] max-[414px]:top-[50px] max-[430px]:top-[60px]'}`}>
                             <div className="
                             w-24 h-24 
-                            w-[70px] h-[70px]
-                            max-[375px]:w-[70px] max-[375px]:h-[70px]
-                            max-[390px]:w-[80px] max-[390px]:h-[80px]
-                            max-[414px]:w-[90px] max-[414px]:h-[90px]
-                            max-[430px]:w-[80px] max-[430px]:h-[80px]
                             rounded-full 
                             overflow-hidden 
                             border-4 
@@ -641,7 +636,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
 
                         {/* User Info Card - Right Position with Centered Content */}
                         {card.tier !== 'empty' && (
-                          <div className="absolute bottom-6 right-6 text-center">
+                          <div className="absolute bottom-4 right-10 text-center">
                             <div className={`flex items-center justify-end mb-2 ${isSelected ? 'mb-1' : 'mb-[-16px] scale-75'}`}>
                               <div className="bg-white rounded-full px-2 py-1 sm:px-3 sm:py-1 flex items-center shadow-xl">
                                 <span className="text-black font-extrabold text-xs sm:text-sm mr-1 sm:mr-2">{values.name || 'Valerie'}</span>
@@ -660,6 +655,9 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
                               <div className="text-blue-800 font-extrabold text-[13px] w-fit">
                                 <div>{values.email || 'valeriebahagia@gmail.com'}</div>
                               </div>
+                              {/* <div className="text-blue-800 font-extrabold text-[13px] w-fit">
+                                <div>6202100027100645</div>
+                              </div> */}
                             </div>
                           </div>
                         )}

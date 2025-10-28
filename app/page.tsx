@@ -210,6 +210,21 @@ export default function Home() {
 
     if (!values.birthday) {
       newErrors.birthday = 'Tanggal lahir harus diisi'
+    } else {
+      // Validate age - minimum 13 years old
+      const today = new Date()
+      const birthDate = new Date(values.birthday)
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      
+      // Adjust age if birthday hasn't occurred this year yet
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+      
+      if (age < 13) {
+        newErrors.birthday = 'Umur minimal 13 tahun'
+      }
     }
 
     if (!values.phone) {
@@ -230,8 +245,50 @@ export default function Home() {
   }
 
   const handleFormNext = async () => {
-    if (!validateForm()) {
-      const errorMessages = Object.values(errors).filter(Boolean)
+    // Validate and get new errors immediately
+    const newErrors: FormErrors = {}
+
+    if (!values.name.trim()) {
+      newErrors.name = 'Nama harus diisi'
+    }
+
+    if (!values.birthday) {
+      newErrors.birthday = 'Tanggal lahir harus diisi'
+    } else {
+      // Validate age - minimum 13 years old
+      const today = new Date()
+      const birthDate = new Date(values.birthday)
+      let age = today.getFullYear() - birthDate.getFullYear()
+      const monthDiff = today.getMonth() - birthDate.getMonth()
+      
+      // Adjust age if birthday hasn't occurred this year yet
+      if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+        age--
+      }
+      
+      if (age < 13) {
+        newErrors.birthday = 'Umur minimal 13 tahun'
+      }
+    }
+
+    if (!values.phone) {
+      newErrors.phone = 'Nomor telepon harus diisi'
+    } else if (!values.phone.startsWith('0')) {
+      newErrors.phone = 'Nomor telepon harus dimulai dengan 0'
+    }
+
+    if (!values.email) {
+      newErrors.email = 'Email harus diisi'
+    } else if (!/\S+@\S+\.\S+/.test(values.email)) {
+      newErrors.email = 'Format email tidak valid'
+    }
+
+    // Set errors for UI display
+    setErrors(newErrors)
+
+    // Check if there are any errors
+    if (Object.keys(newErrors).length > 0) {
+      const errorMessages = Object.values(newErrors).filter(Boolean)
       setErrorList(errorMessages)
       setShowAlert(true)
       return
