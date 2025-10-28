@@ -598,7 +598,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
                         {/* Profile Picture */}
                         {card.tier !== 'empty' && (
                           <div className={`absolute right-8 top-[60px] max-[375px]:right-7 max-[390px]:right-4 -translate-y-1/2 
-                          ${isSelected ? 'top-[70px]' : 'top-[60px] max-[375px]:top-[40px] max-[390px]:top-[40px] max-[414px]:top-[50px] max-[430px]:top-[60px]'}`}>
+                          ${isSelected ? 'top-[60px]' : 'top-[60px] max-[375px]:top-[40px] max-[390px]:top-[40px] max-[414px]:top-[50px] max-[430px]:top-[60px]'}`}>
                             <div className="
                             w-24 h-24 
                             rounded-full 
@@ -651,13 +651,13 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
                               {/* <div className="bg-blue-400 rounded-full px-2 py-1 sm:px-3 sm:py-1 flex items-center shadow-lg w-fit">
                                 <span className="text-white font-extrabold text-[10px] sm:text-xs" style={{ fontFamily: 'Roboto' }}>{values.birthday ? formatBirthday(values.birthday) : '13 SEP 1989'}</span>
                               </div> */}
-                              <div className="text-blue-800 font-extrabold text-[14px] sm:text-xs w-fit" style={{ fontFamily: 'Roboto' }}>{values.phone ? values.phone.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3') : '0877-9832-0931'}</div>
-                              <div className="text-blue-800 font-extrabold text-[13px] w-fit">
+                              <div className="text-white font-extrabold text-[14px] sm:text-xs w-fit" style={{ fontFamily: 'Roboto', textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8)' }}>{values.phone ? values.phone.replace(/(\d{4})(\d{4})(\d{4})/, '$1 $2 $3') : '0877-9832-0931'}</div>
+                              <div className="text-white font-extrabold text-[13px] w-fit" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
                                 <div>{values.email || 'valeriebahagia@gmail.com'}</div>
                               </div>
-                              {/* <div className="text-blue-800 font-extrabold text-[13px] w-fit">
+                              <div className="text-white font-extrabold text-[13px] w-fit" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8), -1px -1px 2px rgba(0, 0, 0, 0.8), 1px -1px 2px rgba(0, 0, 0, 0.8), -1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
                                 <div>6202100027100645</div>
-                              </div> */}
+                              </div>
                             </div>
                           </div>
                         )}

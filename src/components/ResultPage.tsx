@@ -43,7 +43,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
   // Create avatar URL - PRIORITY: sessionStorage > photoFile > API response
   useEffect(() => {
     console.log('=== LOADING AVATAR IMAGE ===')
-    
+
     // PRIORITY 1: Check sessionStorage first (most reliable on refresh)
     const savedProfileImage = sessionStorage.getItem('profileImageData')
     if (savedProfileImage && savedProfileImage.startsWith('data:image/')) {
@@ -51,7 +51,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
       setAvatarUrl(savedProfileImage)
       return
     }
-    
+
     // PRIORITY 2: Check if we have photoFile from props
     if (values.photoFile) {
       // Check if photoFile is a File object
@@ -70,7 +70,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
         }
         reader.readAsDataURL(values.photoFile)
         return
-      } 
+      }
       // Check if it's already a base64 string
       else if (typeof values.photoFile === 'string' && (values.photoFile as string).startsWith('data:image/')) {
         console.log('✅ Using avatar from photoFile (base64 string)')
@@ -79,17 +79,17 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
         return
       }
     }
-    
+
     // PRIORITY 3: Fallback to created.profileImage from API
     if (created?.profileImage) {
       console.log('✅ Using avatar from API response')
-      const profileUrl = created.profileImage.startsWith('http') 
+      const profileUrl = created.profileImage.startsWith('http')
         ? `/api/proxy-image?url=${encodeURIComponent(created.profileImage)}`
         : created.profileImage
       setAvatarUrl(profileUrl)
       return
     }
-    
+
     // No avatar available
     console.log('⚠️ No avatar available')
     setAvatarUrl(null)
@@ -118,7 +118,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
   return (
     <div className="relative">
       {/* Background Image - Full Viewport Height */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: 'url(/bg.png)',
@@ -241,7 +241,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
           {created.coupons.length === 0 && (
             <div className="mt-3 p-3 bg-gray-50 rounded-lg border border-gray-200">
               <div className="text-sm text-neutral-500 text-center mb-2">
-                Hai, nomer ini sudah terdaftar!
+                Nomor HP ini sudah terdaftar lho!
               </div>
             </div>
           )}

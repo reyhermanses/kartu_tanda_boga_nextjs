@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { InputField } from './InputField'
 import { Footer } from './Footer'
 // import { PhotoUploader } from './PhotoUploader'
@@ -12,6 +13,7 @@ type Props = {
 }
 
 export function FormSection({ values, errors, onChange, onNext }: Props) {
+  const [showTermsModal, setShowTermsModal] = useState(false)
   return (
     <div className="form-page p-4 sm:p-6 relative overflow-hidden min-h-screen">
       {/* Background Image - Full Viewport Height */}
@@ -114,6 +116,39 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
             onChange={(v) => onChange({ email: v })}
             error={errors.email}
           />
+
+          {/* Terms & Conditions Checkbox */}
+          <div className="flex items-start space-x-3 mt-4 p-3 rounded-lg border-2 border-white/30 bg-white/5">
+            <input
+              type="checkbox"
+              id="terms-checkbox"
+              checked={values.termsAccepted || false}
+              onChange={(e) => onChange({ termsAccepted: e.target.checked })}
+              className="mt-1 w-5 h-5 text-red-600 bg-white/10 border-2 border-white rounded focus:ring-red-500 focus:ring-2 cursor-pointer accent-red-600"
+              style={{
+                minWidth: '20px',
+                minHeight: '20px'
+              }}
+            />
+            <label htmlFor="terms-checkbox" className="text-white text-xs sm:text-sm leading-relaxed" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
+              Dengan melakukan registrasi pada website ini, Anda menyatakan telah membaca, memahami, dan menyetujui syarat dan ketentuan serta Kebijakan Privasi sebagaimana yang tercantum{' '}
+              <button
+                type="button"
+                onClick={() => setShowTermsModal(true)}
+                className="text-yellow-300 underline hover:text-yellow-200 font-bold transition-colors"
+                style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.9)' }}
+              >
+                disini
+              </button>
+              .
+            </label>
+          </div>
+          {errors.termsAccepted && (
+            <span className="mt-1 block text-xs text-orange-300 font-semibold" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
+              {errors.termsAccepted}
+            </span>
+          )}
+
           {/* Tanggal Lahir dan Jenis Kelamin dalam Row */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
             {/* Tanggal Lahir */}
@@ -212,6 +247,135 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
           </button>
         </div>
       </div>
+
+      {/* Terms & Conditions Modal */}
+      {showTermsModal && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/70">
+          <div className="bg-white rounded-2xl w-full max-w-6xl max-h-[90vh] overflow-hidden flex flex-col">
+            {/* Modal Header */}
+            <div className="flex justify-between items-center p-6 border-b border-gray-200">
+              <h2 className="text-2xl font-bold text-gray-800">Kebijakan Privasi</h2>
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="text-gray-500 hover:text-gray-700 transition-colors"
+              >
+                <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            </div>
+
+            {/* Modal Content - 2 Columns */}
+            <div className="flex-1 overflow-y-auto p-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 text-gray-700 text-sm leading-relaxed">
+                {/* Column 1 */}
+                <div className="space-y-4">
+                  <div>
+                    <p className="font-semibold mb-1">Berlaku sejak: 04 November 2025</p>
+                    <p className="font-semibold">Diperbarui pada: -</p>
+                  </div>
+
+                  <p>PT. Boga Inti ("Boga Group" atau "Kami") membuat website [****] dan/atau Boga App ("Aplikasi") sebagai aplikasi dengan tujuan komersial dan dimaksudkan untuk digunakan sebagaimana adanya.</p>
+                  
+                  <p>Kebijakan Privasi ini digunakan untuk menginformasikan pengunjung Aplikasi ("Pengguna" atau "Anda") mengenai kebijakan Kami dengan pengumpulan, penggunaan, pengolahan, penyimpanan, penguasaan dan pengungkapan Informasi Pribadi (sebagaimana didefinisikan dibawah) jika ada yang memutuskan untuk menggunakan layanan Aplikasi.</p>
+                  
+                  <p>Jika Pengguna mengklik tombol "SETUJU" atau tombol dengan pernyataan serupa lainnya yang tersedia di Aplikasi, maka Pengguna mengakui bahwa Pengguna telah membaca dan memahami Kebijakan Privasi ini dan menyetujui segala ketentuannya. Secara khusus, Pengguna setuju dan memberikan persetujuan kepada Boga Group untuk mengumpulkan, menggunakan, membagikan, mengungkapkan, menyimpan, mentransfer, atau mengolah Informasi Pribadi Pengguna sesuai dengan Kebijakan Privasi ini.</p>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">TANGGAL EFEKTIF & PEMBARUAN KEBIJAKAN PRIVASI</h3>
+                    <p>Kebijakan Privasi berlaku efektif pada tanggal yang tercantum di Kebijakan Privasi ini.</p>
+                    <p className="mt-2">Boga Group dapat mengubah, menambah, menghapus, mengoreksi dan/atau memperbarui Kebijakan Privasi ini dari waktu ke waktu untuk memastikan bahwa Kebijakan Privasi ini konsisten dengan perkembangan Boga Group di masa depan, dan/atau perubahan persyaratan hukum atau peraturan, dengan memposting Kebijakan Privasi yang telah direvisi di Aplikasi, di mana apabila terdapat perubahan material, Boga Group akan mengganti tanggal pada bagian atas Kebijakan Privasi ini.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">PERNYATAAN KESALAHAN INFORMASI PRIBADI</h3>
+                    <p>Setiap ketidaklengkapan, tidak sah, ketidakakuratan, dan/atau penyesatan terhadap Informasi Pribadi yang Pengguna berikan kepada Kami dapat Kami anggap sebagai kegagalan pemenuhan persyaratan hukum atau kewajiban kontrak Pengguna, atau ketidakmampuan Kami untuk membuat kontrak dengan Pengguna.</p>
+                    <p className="mt-2">Pengguna dengan ini membebaskan Kami dari seluruh konsekuensi yang timbul dari kelalaian atau kesalahan Pengguna dalam menjaga kelengkapan, validitas, akurasi, dan kebenaran Informasi Pribadi Pengguna yang Pengguna berikan kepada Kami.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">PENGUMPULAN INFORMASI PRIBADI</h3>
+                    <p>Saat Pengguna menggunakan Aplikasi, Boga Group dapat mengumpulkan informasi tentang Pengguna dan Layanan yang Pengguna gunakan ("Informasi Pribadi"). Informasi Pribadi terbatas pada:</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Nama lengkap</li>
+                      <li>Nomor telepon</li>
+                      <li>Alamat email</li>
+                      <li>Tanggal lahir</li>
+                      <li>Foto</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">PENGGUNAAN INFORMASI PRIBADI</h3>
+                    <p>Boga Group mengumpulkan Informasi Pribadi dan dapat menggunakan Informasi Pribadi yang dikumpulkan untuk tujuan sebagai berikut:</p>
+                    <ul className="list-disc pl-5 mt-2 space-y-1">
+                      <li>Memberikan informasi terkait promosi, penawaran khusus, diskon, dan kegiatan restoran Kami</li>
+                      <li>Keperluan komunikasi terkait layanan dan program loyalitas restoran Kami</li>
+                      <li>Untuk melakukan survei pasar, uji coba, dan riset pelanggan</li>
+                      <li>Untuk penelitian dan pengembangan produk dan layanan dalam Boga Group</li>
+                    </ul>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">KEAMANAN INFORMASI PRIBADI</h3>
+                    <p>Boga Group melindungi Informasi Rahasia Pengguna dengan menggunakan langkah-langkah keamanan teknis, fisik, dan administratif untuk mengurangi risiko kehilangan, penyalahgunaan, akses tidak sah, pengungkapan, atau modifikasi atas Informasi Pribadi.</p>
+                  </div>
+                </div>
+
+                {/* Column 2 */}
+                <div className="space-y-4">
+                  <div>
+                    <h3 className="font-bold text-base mb-2">PENGUNGKAPAN INFORMASI PRIBADI</h3>
+                    <p>Dengan menggunakan layanan dalam Aplikasi, Pengguna dengan ini setuju bahwa Boga Group dapat berbagi Informasi Pribadi antara perusahaan afiliasi di Boga Group, mengungkapkan, memberikan akses atau membagikan Informasi Pribadi kepada perusahaan afiliasi di Boga Group, atau kepada pihak dengan siapa Boga Group mengadakan kerja sama komersial untuk Tujuan Penggunaan atau tujuan lain yang diatur dalam Kebijakan Privasi ini.</p>
+                    <p className="mt-2">Untuk menghindari keraguan, Boga Group tidak akan menjual atau menggunakan Informasi Pribadi dari Pengguna untuk kepentingan komersial selain sebagaimana disebutkan di atas.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">PENYIMPANAN & PENGHAPUSAN INFORMASI PRIBADI</h3>
+                    <p>Boga Group menyimpan Informasi Pribadi milik Pengguna untuk periode yang diperlukan untuk memenuhi Tujuan Penggunaan, atau tujuan lain yang diuraikan dalam Kebijakan Privasi ini atau yang diizinkan oleh peraturan perundang-undangan yang berlaku kecuali diperlukan periode penyimpanan yang lebih lama atau diizinkan oleh hukum.</p>
+                    <p className="mt-2">Pengguna dapat menghapus Informasi Pribadi kapanpun dia mau dengan cara menghapus akun di Aplikasi. Saat Pengguna menghapus akun di Aplikasi, Boga Group akan memastikan bahwa Informasi Pribadi Pengguna telah terhapus secara permanen dengan aman dan menyeluruh dari server Boga Group atau hanya disimpan dalam bentuk anonim.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">PEMBARUAN INFORMASI PRIBADI</h3>
+                    <p>Dengan tunduk pada peraturan perundang-undangan yang berlaku, Pengguna dapat mengakses dan/atau memperbarui Informasi Pribadi yang berada dalam kepemilikan dan penguasaan Boga Group dengan mengunjungi tab 'Saya' dan kemudian bagian 'Edit Profil'.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">PRIVASI ANAK-ANAK</h3>
+                    <p>Boga Group tidak bermaksud agar layanan di Aplikasi digunakan oleh siapa pun yang berusia di bawah umur menurut undang-undang dan peraturan yang berlaku, kecuali dalam pengawasan orang tua atau wali. Jika Pengguna adalah orang tua atau wali dan Pengguna mengetahui bahwa anak Pengguna telah memberikan Informasi Pribadi kepada Boga Group, harap hubungi Boga Group agar Boga Group dapat mampu melakukan tindakan yang diperlukan.</p>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">HUBUNGI KAMI</h3>
+                    <p>Jika Anda mempunyai pertanyaan terkait Kebijakan Privasi ini atau Anda ingin mendapatkan akses ke Informasi Pribadi Anda, mohon hubungi Kami di:</p>
+                    <div className="mt-2 space-y-1">
+                      <p><span className="font-semibold">Email:</span> [●]</p>
+                      <p><span className="font-semibold">Alamat:</span> Rukan CBD Blok J001-J008, Green Lake City Rukan CBD Blok J Nomor 001-008, Kel. Ketapang, Kec. Cipondoh, Kota Tangerang, Provinsi Banten, 15147</p>
+                      <p><span className="font-semibold">Telepon:</span> [●]</p>
+                    </div>
+                  </div>
+
+                  <div>
+                    <h3 className="font-bold text-base mb-2">HUKUM YANG BERLAKU</h3>
+                    <p>Seluruh ketentuan dalam Kebijakan Privasi ini, tunduk pada perundang-undangan yang berlaku dan ditafsirkan sesuai hukum yang berlaku di wilayah Negara Republik Indonesia.</p>
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* Modal Footer */}
+            {/* <div className="flex justify-end p-6 border-t border-gray-200">
+              <button
+                onClick={() => setShowTermsModal(false)}
+                className="px-6 py-3 bg-red-600 text-white rounded-lg hover:bg-red-700 transition-colors font-semibold"
+              >
+                Tutup
+              </button>
+            </div> */}
+          </div>
+        </div>
+      )}
 
       {/* Footer */}
       <Footer />

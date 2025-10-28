@@ -283,6 +283,10 @@ export default function Home() {
       newErrors.email = 'Format email tidak valid'
     }
 
+    if (!values.termsAccepted) {
+      newErrors.termsAccepted = 'Anda harus menyetujui syarat dan ketentuan'
+    }
+
     // Set errors for UI display
     setErrors(newErrors)
 
@@ -294,8 +298,52 @@ export default function Home() {
       return
     }
 
-    // Just validate and go to photo upload page
-    setCurrentPage(3) // Go to photo upload page
+    // CHECK EMAIL/PHONE DUPLICATE WITH API BEFORE PROCEEDING
+    setIsSubmitting(true)
+    try {
+      console.log('Checking email/phone duplicate...')
+      
+      const checkResponse = await fetch('https://alpha-api.mybogaloyalty.id/membership-card/check-email', {
+        method: 'POST',
+        mode: 'cors',
+        credentials: 'omit',
+        headers: {
+          'X-BOGAMBC-Key': 'ajCJotQ8Ug1USZS3KuoXbqaazY59CAvI',
+          'Content-Type': 'application/json',
+          'Accept': 'application/json',
+        },
+        body: JSON.stringify({
+          email: values.email,
+          phone: values.phone,
+        }),
+      })
+
+      const isDuplicate = await checkResponse.json()
+      console.log('Check result (isDuplicate):', isDuplicate)
+
+      // If response is true, means email/phone already exists
+      if (isDuplicate === true) {
+        newErrors.email = 'Email sudah terdaftar!'
+        
+        setErrors(newErrors)
+        const errorMessages = Object.values(newErrors).filter(Boolean)
+        setErrorList(errorMessages)
+        setShowAlert(true)
+        return // Block user from proceeding
+      }
+
+      // If validation passes (isDuplicate === false), go to photo upload page
+      console.log('Email/phone validation passed')
+      setCurrentPage(3)
+    } catch (error) {
+      console.error('Error checking duplicate:', error)
+      // If check API fails, still allow to proceed (fail gracefully)
+      // The actual validation will happen at card submission
+      console.log('API check failed, proceeding anyway')
+      setCurrentPage(3)
+    } finally {
+      setIsSubmitting(false)
+    }
   }
 
   const handlePhotoSubmit = () => {
@@ -355,7 +403,32 @@ export default function Home() {
         setCreated(result.data)
         setCurrentPage(5) // Go to result page
       } else {
-        throw new Error(result.message || 'Failed to create membership')
+        // Handle duplicate email/phone errors
+        const errorMsg = result.message || 'Failed to create membership'
+        const errorMsgLower = errorMsg.toLowerCase()
+        
+        const newErrors: FormErrors = {}
+        
+        // Parse error message to set specific field errors
+        if (errorMsgLower.includes('phone') || errorMsgLower.includes('telepon') || errorMsgLower.includes('nomor')) {
+          newErrors.phone = 'Nomor telepon sudah terdaftar'
+        }
+        if (errorMsgLower.includes('email')) {
+          newErrors.email = 'Email sudah terdaftar'
+        }
+        
+        // Set errors and navigate back to form
+        if (Object.keys(newErrors).length > 0) {
+          setErrors(newErrors)
+          const errorMessages = Object.values(newErrors).filter(Boolean)
+          setErrorList(errorMessages)
+          setShowAlert(true)
+          setCurrentPage(2) // Go back to form page to show errors
+        } else {
+          // Generic error - show alert
+          setAlertMessage(errorMsg)
+          setShowAlert(true)
+        }
       }
     } catch (error) {
       console.error('Error creating membership:', error)
