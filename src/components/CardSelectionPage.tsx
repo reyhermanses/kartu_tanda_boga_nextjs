@@ -24,6 +24,10 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
   const [isProcessing, setIsProcessing] = useState(false)
   const [profileImageUrl, setProfileImageUrl] = useState<string | null>(null)
   const [profileImageError, setProfileImageError] = useState(false)
+  // Mouse event states for desktop
+  const [mouseStart, setMouseStart] = useState<number | null>(null)
+  const [mouseEnd, setMouseEnd] = useState<number | null>(null)
+  const [isDragging, setIsDragging] = useState(false)
 
 
   // Handle profile image URL - ALWAYS prioritize values.photoFile over sessionStorage
@@ -162,12 +166,9 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
 
     if (cards.length > 0) {
       setCurrentCardIndex((prev) => {
-        const next = prev + 1
-        // For 4 cards: 0->1->2->3, then stop at 3
-        const maxIndex = cards.length - 1
-        const newIndex = next > maxIndex ? maxIndex : next
-        console.log('Next card:', newIndex, 'Total cards:', cards.length)
-        console.log('Will show cards:', newIndex <= 1 ? '0,1,2' : '1,2,3')
+        // Infinite loop: wrap to 0 when reaching the end
+        const newIndex = (prev + 1) % cards.length
+        console.log('Next card (infinite):', newIndex, 'Total cards:', cards.length)
         return newIndex
       })
     }
@@ -180,11 +181,9 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
 
     if (cards.length > 0) {
       setCurrentCardIndex((prev) => {
-        const prevIndex = prev - 1
-        // For 4 cards: 3->2->1->0, then stop at 0
-        const newIndex = prevIndex < 0 ? 0 : prevIndex
-        console.log('Prev card:', newIndex, 'Total cards:', cards.length)
-        console.log('Will show cards:', newIndex <= 1 ? '0,1,2' : '1,2,3')
+        // Infinite loop: wrap to last card when going before 0
+        const newIndex = prev - 1 < 0 ? cards.length - 1 : prev - 1
+        console.log('Prev card (infinite):', newIndex, 'Total cards:', cards.length)
         return newIndex
       })
     }
@@ -236,6 +235,64 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
     }
   }
 
+  // Mouse handlers for desktop swipe
+  const handleMouseDown = (e: React.MouseEvent) => {
+    console.log('=== MOUSE DOWN ===')
+    setIsDragging(true)
+    setMouseEnd(null)
+    setMouseStart(e.clientY)
+    console.log('Mouse start Y:', e.clientY)
+  }
+
+  const handleMouseMove = (e: React.MouseEvent) => {
+    if (!isDragging) return
+    setMouseEnd(e.clientY)
+  }
+
+  const handleMouseUp = () => {
+    console.log('=== MOUSE UP ===')
+    console.log('Mouse start:', mouseStart)
+    console.log('Mouse end:', mouseEnd)
+
+    if (!isDragging || !mouseStart || !mouseEnd) {
+      console.log('Missing mouse data or not dragging, ignoring')
+      setIsDragging(false)
+      return
+    }
+
+    const distance = mouseStart - mouseEnd
+    const isUpDrag = distance > 50
+    const isDownDrag = distance < -50
+
+    console.log('Drag detected:', {
+      distance,
+      isUpDrag,
+      isDownDrag,
+      mouseStart,
+      mouseEnd
+    })
+
+    if (isUpDrag) {
+      console.log('Drag up - going to next card')
+      nextCard() // Drag up = next card
+    } else if (isDownDrag) {
+      console.log('Drag down - going to previous card')
+      prevCard() // Drag down = previous card
+    } else {
+      console.log('Drag distance too small, ignoring')
+    }
+
+    setIsDragging(false)
+  }
+
+  const handleMouseLeave = () => {
+    // Reset dragging state when mouse leaves the container
+    if (isDragging) {
+      console.log('Mouse left container, resetting drag state')
+      setIsDragging(false)
+    }
+  }
+
   // Memoize visible cards to prevent re-computation on every render
   const visibleCards = useMemo(() => {
     console.log('=== COMPUTING VISIBLE CARDS (useMemo) ===')
@@ -245,30 +302,21 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
     let computed: CardDesign[] = []
 
     if (cards.length >= 3) {
-      // Dynamic logic for any number of cards
-      if (currentCardIndex === 0) {
-        // First card: show [empty, 0, 1]
-        computed = [
-          { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-          cards[0] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-          cards[1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' }
-        ]
-      } else if (currentCardIndex === cards.length - 1) {
-        // Last card: show [n-2, n-1, empty]
-        const lastIndex = cards.length - 1
-        computed = [
-          cards[lastIndex - 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-          cards[lastIndex] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-          { id: -2, name: 'EMPTY', imageUrl: '', tier: 'empty' }
-        ]
-      } else {
-        // Middle cards: show [n-1, n, n+1]
-        computed = [
-          cards[currentCardIndex - 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-          cards[currentCardIndex] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' },
-          cards[currentCardIndex + 1] || { id: -1, name: 'EMPTY', imageUrl: '', tier: 'empty' }
-        ]
-      }
+      // Infinite loop logic: wrap around using modulo
+      const prevIndex = currentCardIndex - 1 < 0 ? cards.length - 1 : currentCardIndex - 1
+      const nextIndex = (currentCardIndex + 1) % cards.length
+      
+      computed = [
+        cards[prevIndex],  // Previous card (wraps to last if at 0)
+        cards[currentCardIndex],  // Current card
+        cards[nextIndex]  // Next card (wraps to first if at last)
+      ]
+      
+      console.log('Infinite loop cards:', {
+        prev: prevIndex,
+        current: currentCardIndex,
+        next: nextIndex
+      })
     } else if (cards.length > 0) {
       // For 1-2 cards, duplicate to make 3
       computed = [...cards]
@@ -536,9 +584,15 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
           onTouchStart={handleTouchStart}
           onTouchMove={handleTouchMove}
           onTouchEnd={handleTouchEnd}
+          onMouseDown={handleMouseDown}
+          onMouseMove={handleMouseMove}
+          onMouseUp={handleMouseUp}
+          onMouseLeave={handleMouseLeave}
           style={{
             touchAction: 'pan-y',
-            overscrollBehavior: 'none'
+            overscrollBehavior: 'none',
+            cursor: isDragging ? 'grabbing' : 'grab',
+            userSelect: 'none'
           }}
         >
           {/* 3 Visible Cards Container */}
@@ -678,13 +732,12 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
             </div>
           )} */}
 
-          {/* Navigation Arrows - Only show when not at boundaries */}
-          {currentCardIndex > 0 && (
+          {/* Navigation Arrows - Always show for infinite loop */}
+          {cards.length > 0 && (
             <button
               onClick={() => {
                 // console.log('=== PREV BUTTON CLICKED ===')
                 // console.log('Current index:', currentCardIndex)
-                // console.log('Disabled:', currentCardIndex <= 0)
                 prevCard()
               }}
               className="absolute top-16 sm:top-16 left-1/2 transform -translate-x-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all"
@@ -696,12 +749,11 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
             </button>
           )}
 
-          {currentCardIndex < cards.length - 1 && (
+          {cards.length > 0 && (
             <button
               onClick={() => {
                 // console.log('=== NEXT BUTTON CLICKED ===')
                 // console.log('Current index:', currentCardIndex)
-                // console.log('Disabled:', currentCardIndex >= cards.length - 1)
                 nextCard()
               }}
               className="absolute bottom-16 sm:bottom-16 left-1/2 transform -translate-x-1/2 w-10 h-10 sm:w-12 sm:h-12 rounded-full flex items-center justify-center transition-all"
