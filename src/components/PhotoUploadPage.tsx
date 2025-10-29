@@ -46,23 +46,23 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
       const MAX_WIDTH = 800
       const MAX_HEIGHT = 800
       const QUALITY = 0.7
-      
+
       const reader = new FileReader()
       reader.onload = (e) => {
         const img = new Image()
         img.onload = () => {
           const canvas = document.createElement('canvas')
           const ctx = canvas.getContext('2d')
-          
+
           if (!ctx) {
             reject(new Error('Failed to get canvas context'))
             return
           }
-          
+
           // Calculate new dimensions
           let width = img.width
           let height = img.height
-          
+
           if (width > height) {
             if (width > MAX_WIDTH) {
               height = height * (MAX_WIDTH / width)
@@ -74,13 +74,13 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
               height = MAX_HEIGHT
             }
           }
-          
+
           canvas.width = width
           canvas.height = height
-          
+
           // Draw image
           ctx.drawImage(img, 0, 0, width, height)
-          
+
           // Convert to blob
           canvas.toBlob((blob) => {
             if (blob) {
@@ -106,11 +106,11 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
         // For Samsung devices, try to get permission first
         const devices = await navigator.mediaDevices.enumerateDevices()
         console.log('Available devices:', devices)
-        
+
         // Check if camera devices are available
         const videoDevices = devices.filter(device => device.kind === 'videoinput')
         console.log('Video devices found:', videoDevices)
-        
+
         if (videoDevices.length === 0) {
           throw new Error('No camera devices found')
         }
@@ -142,7 +142,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
         if (isFoldableDevice()) {
           console.log('Foldable device detected (Samsung Fold/Flip)')
         }
-        
+
         if (facingMode === 'user') {
           // Samsung Fold 5 front camera constraints
           const samsungFrontConstraints = [
@@ -322,7 +322,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
       }
     } catch (error) {
       console.error('Error accessing camera:', error)
-      
+
       // More specific error messages
       if (error instanceof Error) {
         if (error.name === 'NotAllowedError') {
@@ -396,10 +396,10 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
         // COMPRESS IMAGE: Set max dimensions to reduce file size
         const MAX_WIDTH = 800
         const MAX_HEIGHT = 800
-        
+
         let width = video.videoWidth
         let height = video.videoHeight
-        
+
         // Calculate new dimensions while maintaining aspect ratio
         if (width > height) {
           if (width > MAX_WIDTH) {
@@ -412,7 +412,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
             height = MAX_HEIGHT
           }
         }
-        
+
         canvas.width = width
         canvas.height = height
 
@@ -429,7 +429,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
 
         // Convert canvas to base64 data URL with HIGHER compression (0.7 instead of 0.8)
         const dataUrl = canvas.toDataURL('image/jpeg', 0.7)
-        
+
         console.log('Original dimensions:', video.videoWidth, 'x', video.videoHeight)
         console.log('Compressed dimensions:', width, 'x', height)
         console.log('Base64 size:', Math.round(dataUrl.length / 1024), 'KB')
@@ -438,7 +438,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
         const response = await fetch(dataUrl)
         const blob = await response.blob()
         const file = new File([blob], 'camera-photo.jpg', { type: 'image/jpeg' })
-        
+
         console.log('File size:', Math.round(file.size / 1024), 'KB')
 
         onChange({ photoFile: file })
@@ -479,9 +479,9 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
   useEffect(() => {
     console.log('=== PHOTO FILE CHANGED ===')
     console.log('New photoFile:', values.photoFile)
-    
+
     let currentUrl: string | null = null
-    
+
     // Create new preview URL if photoFile exists
     if (values.photoFile && values.photoFile instanceof File) {
       currentUrl = URL.createObjectURL(values.photoFile)
@@ -491,7 +491,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
       setPreviewUrl(null)
       console.log('No photoFile, clearing preview')
     }
-    
+
     // Cleanup function - revoke the URL created in this effect
     return () => {
       if (currentUrl) {
@@ -509,7 +509,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
       setIsCameraOpen(false)
       return
     }
-    
+
     // Start camera immediately when PhotoUploadPage opens ONLY if no photo
     const initCamera = async () => {
       try {
@@ -520,7 +520,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
         // For Samsung devices, try multiple times with longer delays
         const retryDelay = isSamsungDevice() ? 2000 : 1000
         const maxRetries = isSamsungDevice() ? 3 : 1
-        
+
         for (let i = 0; i < maxRetries; i++) {
           setTimeout(() => {
             console.log(`Retry ${i + 1} for camera initialization`)
@@ -529,9 +529,9 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
         }
       }
     }
-    
+
     initCamera()
-    
+
     return () => {
       stopCamera()
     }
@@ -559,7 +559,7 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
   return (
     <div className="photo-upload-page relative">
       {/* Background Image - Full Viewport Height */}
-      <div 
+      <div
         className="fixed inset-0 bg-cover bg-center bg-no-repeat"
         style={{
           backgroundImage: 'url(/bg.png)',
@@ -648,9 +648,9 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
             {/* <button className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center">
               <div className="w-6 h-6 sm:w-8 sm:h-8 rounded-full border-2 border-white"></div>
             </button> */}
+            {/* <div></div>
             <div></div>
-            <div></div>
-            <div></div>
+            <div></div> */}
 
             {/* <button
               onClick={toggleFlashlight}
@@ -663,6 +663,29 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
                 <path fillRule="evenodd" d="M11.3 1.046A1 1 0 0112 2v5h4a1 1 0 01.82 1.573l-7 10A1 1 0 018 18v-5H4a1 1 0 01-.82-1.573l7-10a1 1 0 011.12-.38z" clipRule="evenodd" />
               </svg>
             </button> */}
+
+            {/* Retake Button */}
+            <button
+              onClick={() => {
+                // Clear photo and restart camera
+                if (values.photoFile) {
+                  onChange({ photoFile: null })
+                  // Clear preview URL
+                  if (previewUrl) {
+                    URL.revokeObjectURL(previewUrl)
+                    setPreviewUrl(null)
+                  }
+                }
+                startCamera()
+                setIsCameraOpen(true)
+              }}
+              className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center"
+              title="Retake Photo"
+            >
+              <svg className="w-6 h-6 sm:w-8 sm:h-8 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+              </svg>
+            </button>
 
             {/* Shutter */}
             <button
@@ -707,19 +730,19 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
                     // COMPRESS IMAGE FROM GALLERY
                     try {
                       console.log('Gallery image selected, original size:', Math.round(file.size / 1024), 'KB')
-                      
+
                       const compressedFile = await compressImage(file)
-                      
+
                       // Clear old preview URL before setting new one
                       if (previewUrl) {
                         URL.revokeObjectURL(previewUrl)
                         setPreviewUrl(null)
                       }
-                      
+
                       onChange({ photoFile: compressedFile })
                       stopCamera()
                       setIsCameraOpen(false)  // Explicitly set camera as closed
-                      
+
                       console.log('Gallery image compressed to:', Math.round(compressedFile.size / 1024), 'KB')
                     } catch (error) {
                       console.error('Error compressing gallery image:', error)
@@ -757,9 +780,9 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
             className={`
               w-[150px] py-3 sm:py-4 rounded-[20px] font-bold text-sm sm:text-lg transition-all
               ${values.photoFile && values.photoFile instanceof File
-                    ? 'bg-white text-red-600 hover:bg-gray-100'
-                    : 'bg-gray-400 text-gray-600 cursor-not-allowed'
-                  }
+                ? 'bg-white text-red-600 hover:bg-gray-100'
+                : 'bg-gray-400 text-gray-600 cursor-not-allowed'
+              }
               max-[375px]:w-[120px]
             `}
           >
