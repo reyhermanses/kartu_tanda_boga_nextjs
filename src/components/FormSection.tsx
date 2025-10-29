@@ -67,7 +67,19 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                 type="date"
                 value={values.birthday}
                 onChange={(e) => onChange({ birthday: e.target.value })}
-                className={`date-input-custom w-full rounded-[20px] border-2 bg-transparent px-3 py-3 sm:px-4 sm:py-5 text-white placeholder-white/70 outline-none focus:border-white focus:ring-1 focus:ring-white/50 focus:bg-transparent hover:bg-transparent transition-all text-base ${errors.birthday ? 'border-orange-500' : 'border-red-400'
+                onClick={(e) => {
+                  // For desktop browsers, try to open date picker
+                  try {
+                    const input = e.currentTarget as HTMLInputElement;
+                    if (input.showPicker) {
+                      input.showPicker();
+                    }
+                  } catch (error) {
+                    // Fallback for browsers that don't support showPicker
+                    console.log('showPicker not supported');
+                  }
+                }}
+                className={`date-input-custom w-full rounded-[20px] border-2 bg-transparent px-3 py-3 sm:px-4 sm:py-5 text-white placeholder-white/70 outline-none focus:border-white focus:ring-1 focus:ring-white/50 focus:bg-transparent hover:bg-transparent transition-all text-base cursor-pointer ${errors.birthday ? 'border-orange-500' : 'border-red-400'
                   }`}
                 style={{
                   colorScheme: 'dark',
@@ -81,12 +93,30 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                 }}
                 id="birthday-input"
               />
-              {/* Custom Calendar Icon - Visible on all devices */}
+              {/* Custom Calendar Icon - Clickable on all devices */}
               <div
-                className="absolute right-4 top-1/2 transform -translate-y-1/2"
-                style={{ pointerEvents: 'none' }}
+                className="absolute right-4 top-1/2 transform -translate-y-1/2 cursor-pointer"
+                onClick={() => {
+                  const input = document.getElementById('birthday-input') as HTMLInputElement;
+                  if (input) {
+                    // Focus the input first
+                    input.focus();
+                    // Try to open date picker for desktop browsers
+                    try {
+                      if (input.showPicker) {
+                        input.showPicker();
+                      } else {
+                        // Fallback: trigger click event
+                        input.click();
+                      }
+                    } catch (error) {
+                      // If showPicker fails, just focus the input
+                      console.log('Date picker trigger failed, input focused');
+                    }
+                  }
+                }}
               >
-                <svg className="w-5 h-5 text-white" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                <svg className="w-5 h-5 text-white hover:text-red-300 transition-colors" fill="none" stroke="currentColor" viewBox="0 0 24 24">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
                 </svg>
               </div>
@@ -108,21 +138,10 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
             error={errors.email}
           />
 
-          {/* Terms & Conditions Checkbox */}
-          <div className="flex items-start space-x-3 mt-4 p-3 rounded-lg border-2 border-white/30 bg-white/5">
-            <input
-              type="checkbox"
-              id="terms-checkbox"
-              checked={values.termsAccepted || false}
-              onChange={(e) => onChange({ termsAccepted: e.target.checked })}
-              className="mt-1 w-5 h-5 text-red-600 bg-white/10 border-2 border-white rounded focus:ring-red-500 focus:ring-2 cursor-pointer accent-red-600"
-              style={{
-                minWidth: '20px',
-                minHeight: '20px'
-              }}
-            />
-            <label htmlFor="terms-checkbox" className="text-white text-xs sm:text-sm leading-relaxed" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
-              Dengan melakukan registrasi pada website ini, Anda menyatakan telah membaca, memahami, dan menyetujui syarat dan ketentuan serta Kebijakan Privasi sebagaimana yang tercantum{' '}
+          {/* Privacy Policy Information */}
+          <div className="mt-4 p-3 rounded-lg border-2 border-white/30 bg-white/5">
+            <p className="text-white text-xs sm:text-sm leading-relaxed text-center" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
+              Dengan Klik tombol <strong className="font-bold">Lanjut</strong> dibawah ini, berarti Anda sudah menyetujui Syarat dan Ketentuan yang tercantum{' '}
               <button
                 type="button"
                 onClick={() => setShowTermsModal(true)}
@@ -132,13 +151,8 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                 disini
               </button>
               .
-            </label>
+            </p>
           </div>
-          {errors.termsAccepted && (
-            <span className="mt-1 block text-xs text-orange-300 font-semibold" style={{ textShadow: '1px 1px 2px rgba(0, 0, 0, 0.8)' }}>
-              {errors.termsAccepted}
-            </span>
-          )}
 
           {/* Tanggal Lahir dan Jenis Kelamin dalam Row */}
           <div className="grid grid-cols-2 gap-3 sm:gap-4">
@@ -266,7 +280,7 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                     <p className="font-semibold">Diperbarui pada: -</p>
                   </div>
 
-                  <p>PT. Boga Inti ("Boga Group" atau "Kami") membuat website [****] dan/atau Boga App ("Aplikasi") sebagai aplikasi dengan tujuan komersial dan dimaksudkan untuk digunakan sebagaimana adanya.</p>
+                  <p>PT. Boga Inti ("Boga Group" atau "Kami") membuat website ini dan Boga App ("Aplikasi") sebagai aplikasi dengan tujuan komersial dan dimaksudkan untuk digunakan sebagaimana adanya.</p>
                   
                   <p>Kebijakan Privasi ini digunakan untuk menginformasikan pengunjung Aplikasi ("Pengguna" atau "Anda") mengenai kebijakan Kami dengan pengumpulan, penggunaan, pengolahan, penyimpanan, penguasaan dan pengungkapan Informasi Pribadi (sebagaimana didefinisikan dibawah) jika ada yang memutuskan untuk menggunakan layanan Aplikasi.</p>
                   
@@ -341,9 +355,9 @@ export function FormSection({ values, errors, onChange, onNext }: Props) {
                     <h3 className="font-bold text-base mb-2">HUBUNGI KAMI</h3>
                     <p>Jika Anda mempunyai pertanyaan terkait Kebijakan Privasi ini atau Anda ingin mendapatkan akses ke Informasi Pribadi Anda, mohon hubungi Kami di:</p>
                     <div className="mt-2 space-y-1">
-                      <p><span className="font-semibold">Email:</span> [●]</p>
+                      <p><span className="font-semibold">Email:</span> cs@boga.co.id</p>
                       <p><span className="font-semibold">Alamat:</span> Rukan CBD Blok J001-J008, Green Lake City Rukan CBD Blok J Nomor 001-008, Kel. Ketapang, Kec. Cipondoh, Kota Tangerang, Provinsi Banten, 15147</p>
-                      <p><span className="font-semibold">Telepon:</span> [●]</p>
+                      <p><span className="font-semibold">Telepon:</span> +62 878-8883-9221</p>
                     </div>
                   </div>
 

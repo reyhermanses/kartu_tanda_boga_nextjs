@@ -287,10 +287,6 @@ export default function Home() {
       newErrors.email = 'Format email tidak valid'
     }
 
-    if (!values.termsAccepted) {
-      newErrors.termsAccepted = 'Anda harus menyetujui syarat dan ketentuan'
-    }
-
     // Set errors for UI display
     setErrors(newErrors)
 
