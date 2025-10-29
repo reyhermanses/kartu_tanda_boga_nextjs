@@ -664,29 +664,31 @@ export function PhotoUploadPage({ values, onChange, onBack, onNext }: Props) {
               </svg>
             </button> */}
 
-            {/* Retake Button */}
-            <button
-              onClick={() => {
-                // Clear photo and restart camera
-                if (values.photoFile) {
+            {/* Retake Button - Only show when photo is taken */}
+            {values.photoFile ? (
+              <button
+                onClick={() => {
+                  // Clear photo and restart camera
                   onChange({ photoFile: null })
                   // Clear preview URL
                   if (previewUrl) {
                     URL.revokeObjectURL(previewUrl)
                     setPreviewUrl(null)
                   }
-                }
-                startCamera()
-                setIsCameraOpen(true)
-              }}
-              className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center"
-              title="Retake Photo"
-            >
-              <img 
-                src="/camera-retake.png" 
-                alt="Retake" 
-              />
-            </button>
+                  startCamera()
+                  setIsCameraOpen(true)
+                }}
+                className="w-8 h-8 sm:w-12 sm:h-12 flex items-center justify-center"
+                title="Retake Photo"
+              >
+                <img 
+                  src="/camera-retake.png" 
+                  alt="Retake" 
+                />
+              </button>
+            ) : (
+              <div className="w-8 h-8 sm:w-12 sm:h-12"></div>
+            )}
 
             {/* Shutter */}
             <button
