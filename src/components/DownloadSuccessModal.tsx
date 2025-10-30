@@ -37,7 +37,7 @@ export function DownloadSuccessModal({ isOpen, onClose, onPrimaryAction }: Props
                         Cek Kartu Kamu di Galeri.
                     </p>
                     <p className="text-gray-600 leading-relaxed">
-                        Yuk Ambil Promonya Sekarang!
+                        Yuk Ambil Voucher Hadiahmu Sekarang!
                     </p>
                 </div>
             </div>

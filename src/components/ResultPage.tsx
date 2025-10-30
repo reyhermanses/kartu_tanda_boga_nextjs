@@ -279,7 +279,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
               onClick={handleClaimClick}
               className="w-[200px] py-3 sm:py-4 rounded-[20px] font-bold text-sm sm:text-lg transition-all bg-white text-red-600 hover:bg-gray-100"
             >
-              Ambil Promonya Sekarang!
+              Ambil Voucher Hadiahmu Sekarang!
             </button>
           </div>
         </div>
