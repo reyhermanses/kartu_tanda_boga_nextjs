@@ -2,6 +2,7 @@ import { useState, useEffect, useRef } from 'react'
 import { CouponCarousel } from './CouponCarousel'
 import { Footer } from './Footer'
 import { CardDownloader } from './CardDownloader'
+import { DownloadSuccessModal } from './DownloadSuccessModal'
 
 type CreateMembershipResponse = {
   status: string
@@ -38,6 +39,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
   const [avatarUrl, setAvatarUrl] = useState<string | null>(null)
   const [cardImageUrl, setCardImageUrl] = useState<string | null>(null)
   const cardRef = useRef<HTMLDivElement>(null)
+  const [isSuccessModalOpen, setIsSuccessModalOpen] = useState(false)
 
 
   // Create avatar URL - PRIORITY: sessionStorage > photoFile > API response
@@ -271,7 +273,7 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
                 serial: created?.serial || '6202100027100645'
               }}
               selectedCardUrl={selectedCardUrl}
-              onDownload={() => console.log('Download completed')}
+              onDownload={() => setIsSuccessModalOpen(true)}
             />
             <button
               onClick={handleClaimClick}
@@ -285,6 +287,15 @@ export function ResultPage({ created, values, selectedCardUrl }: Props) {
 
       {/* Footer */}
       <Footer />
+
+      <DownloadSuccessModal
+        isOpen={isSuccessModalOpen}
+        onClose={() => setIsSuccessModalOpen(false)}
+        onPrimaryAction={() => {
+          setIsSuccessModalOpen(false)
+          handleClaimClick()
+        }}
+      />
     </div>
   )
 }
