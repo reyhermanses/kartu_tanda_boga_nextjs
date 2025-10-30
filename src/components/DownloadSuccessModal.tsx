@@ -32,28 +32,13 @@ export function DownloadSuccessModal({ isOpen, onClose, onPrimaryAction }: Props
                     </button>
                 </div>
 
-                <div className="px-6">
+                <div className="px-6 pb-4">
                     <p className="text-gray-600 leading-relaxed">
                         Cek Kartu Kamu di Galeri.
                     </p>
                     <p className="text-gray-600 leading-relaxed">
                         Yuk Ambil Promonya Sekarang!
                     </p>
-                </div>
-
-                <div className="px-6 flex flex-col gap-3">
-                    {/* <button
-            onClick={onPrimaryAction}
-            className="w-full bg-green-600 hover:bg-green-700 text-white font-semibold py-3 px-4 rounded-xl transition-colors active:scale-[0.98]"
-          > */}
-                    Yuk Ambil Promonya Sekarang!
-                    {/* </button> */}
-                    {/* <button
-            onClick={onClose}
-            className="w-full bg-gray-100 hover:bg-gray-200 text-gray-700 font-semibold py-3 px-4 rounded-xl transition-colors active:scale-[0.98]"
-          >
-            Nanti Saja
-          </button> */}
                 </div>
             </div>
         </div>
