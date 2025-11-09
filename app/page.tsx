@@ -303,12 +303,12 @@ export default function Home() {
     try {
       console.log('Checking email/phone duplicate...')
 
-      const checkResponse = await fetch('https://alpha-api.mybogaloyalty.id/membership-card/check-email', {
+      const checkResponse = await fetch('https://api.mybogaloyalty.id/membership-card/check-email', {
         method: 'POST',
         mode: 'cors',
         credentials: 'omit',
         headers: {
-          'X-BOGAMBC-Key': 'ajCJotQ8Ug1USZS3KuoXbqaazY59CAvI',
+          'X-BOGAMBC-Key': 'gKl7TGgtIW3vzJmMoKYjklAgi7lE4Qo9',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
@@ -373,12 +373,12 @@ export default function Home() {
     setIsSubmitting(true)
     try {
 
-      const response = await fetch('https://alpha-api.mybogaloyalty.id/membership-card/create', {
+      const response = await fetch('https://api.mybogaloyalty.id/membership-card/create', {
         method: 'POST',
         mode: 'cors',
         credentials: 'omit',
         headers: {
-          'X-BOGAMBC-Key': 'ajCJotQ8Ug1USZS3KuoXbqaazY59CAvI',
+          'X-BOGAMBC-Key': 'gKl7TGgtIW3vzJmMoKYjklAgi7lE4Qo9',
           'Content-Type': 'application/json',
           'Accept': 'application/json',
         },
