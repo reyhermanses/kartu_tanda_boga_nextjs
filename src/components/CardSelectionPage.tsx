@@ -368,13 +368,25 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
         const proxyUrl = `/api/proxy-image?url=${encodeURIComponent(url)}`
         console.log('Trying local proxy URL:', proxyUrl)
 
-        const response = await fetch(proxyUrl)
+        const response = await fetch(proxyUrl, {
+          method: 'GET',
+          headers: {
+            'Accept': 'image/*,*/*',
+          },
+        })
+        
         if (!response.ok) {
+          const errorText = await response.text().catch(() => 'Unknown error')
+          console.error(`Proxy request failed: ${response.status} - ${errorText}`)
           throw new Error(`Local proxy request failed: ${response.status}`)
         }
 
         const blob = await response.blob()
         console.log('Local proxy blob size:', blob.size)
+
+        if (blob.size === 0) {
+          throw new Error('Proxy returned empty blob')
+        }
 
         return new Promise((resolve, reject) => {
           const reader = new FileReader()
