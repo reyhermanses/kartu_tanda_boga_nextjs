@@ -303,7 +303,7 @@ export default function Home() {
     try {
       console.log('Checking email/phone duplicate...')
 
-      const checkResponse = await fetch('https://api.mybogaloyalty.id/membership-card/check-email', {
+      const checkResponse = await fetch('https://alpha-api.mybogaloyalty.id/membership-card/check-email', {
         method: 'POST',
         mode: 'cors',
         credentials: 'omit',
@@ -373,7 +373,7 @@ export default function Home() {
     setIsSubmitting(true)
     try {
 
-      const response = await fetch('https://api.mybogaloyalty.id/membership-card/create', {
+      const response = await fetch('https://alpha-api.mybogaloyalty.id/membership-card/create', {
         method: 'POST',
         mode: 'cors',
         credentials: 'omit',

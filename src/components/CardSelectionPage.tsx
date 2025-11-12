@@ -105,7 +105,7 @@ export function CardSelectionPage({ values, onNext, onBack }: Props) {
     const loadCards = async () => {
       try {
         setLoading(true)
-        const response = await fetch('https://api.mybogaloyalty.id/membership-card', {
+        const response = await fetch('https://alpha-api.mybogaloyalty.id/membership-card', {
           method: 'GET',
           headers: {
             'X-BOGAMBC-Key': 'gKl7TGgtIW3vzJmMoKYjklAgi7lE4Qo9',
