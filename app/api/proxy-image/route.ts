@@ -1,5 +1,8 @@
 import { NextRequest, NextResponse } from 'next/server';
 
+// Route segment config for Vercel
+export const maxDuration = 30;
+
 export async function GET(request: NextRequest) {
   try {
     const { searchParams } = new URL(request.url);
